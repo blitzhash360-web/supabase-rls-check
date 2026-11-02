@@ -1,0 +1,44 @@
+{
+  "name": "supabase-rls-check",
+  "version": "1.0.0",
+  "description": "Offline Supabase RLS security checker for SQL dumps, migrations, and frontend bundles. Flags RLS-off tables, USING (true) policies, public storage buckets, and service-role leaks.",
+  "bin": {
+    "supabase-rls-check": "./bin/supabase-rls-check.js"
+  },
+  "main": "./src/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "node bin/supabase-rls-check.js"
+  },
+  "keywords": [
+    "supabase",
+    "rls",
+    "security",
+    "row-level-security",
+    "postgres",
+    "vibe-coding",
+    "lovable",
+    "audit",
+    "cli"
+  ],
+  "author": "BlitzHash",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blitzhash360-web/supabase-rls-check.git"
+  },
+  "homepage": "https://blitzhash.com",
+  "bugs": {
+    "url": "https://github.com/blitzhash360-web/supabase-rls-check/issues"
+  },
+  "files": [
+    "bin",
+    "src",
+    "LICENSE",
+    "README.md"
+  ]
+}

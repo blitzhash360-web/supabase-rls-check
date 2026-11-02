@@ -1,0 +1,44 @@
+name: supabase-rls-check
+
+on:
+  push:
+    paths:
+      - "supabase/**"
+      - "migrations/**"
+      - "**/*.sql"
+      - "src/**"
+      - "app/**"
+  pull_request:
+    paths:
+      - "supabase/**"
+      - "migrations/**"
+      - "**/*.sql"
+      - "src/**"
+      - "app/**"
+  workflow_dispatch:
+
+jobs:
+  rls-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run supabase-rls-check
+        run: |
+          set -euo pipefail
+          ARGS=()
+          if [ -d supabase/migrations ]; then ARGS+=(--sql supabase/migrations); fi
+          if [ -d migrations ]; then ARGS+=(--sql migrations); fi
+          if [ -d supabase ]; then ARGS+=(--sql supabase); fi
+          # Frontend scan is optional — only when src/ or app/ exists
+          if [ -d src ]; then ARGS+=(--frontend src); fi
+          if [ -d app ]; then ARGS+=(--frontend app); fi
+          if [ ${#ARGS[@]} -eq 0 ]; then
+            echo "No supabase/migrations, migrations/, or sql targets found — skipping."
+            exit 0
+          fi
+          npx --yes github:blitzhash360-web/supabase-rls-check --fail-on high "${ARGS[@]}"

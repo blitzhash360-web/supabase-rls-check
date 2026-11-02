@@ -1,0 +1,45 @@
+name: "supabase-rls-check"
+description: "Offline Supabase RLS audit — flags RLS-off tables, USING (true) policies, public buckets, and service-role leaks."
+author: "BlitzHash"
+branding:
+  icon: shield
+  color: red
+inputs:
+  sql:
+    description: "Comma-separated SQL dump or migrations paths"
+    required: false
+    default: "supabase/migrations"
+  frontend:
+    description: "Comma-separated frontend paths to scan (optional)"
+    required: false
+    default: ""
+  fail-on:
+    description: "Fail the job at this severity or worse (critical|high|medium|low)"
+    required: false
+    default: "high"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+    - name: Run supabase-rls-check
+      shell: bash
+      run: |
+        set -euo pipefail
+        ARGS=(--fail-on "${{ inputs.fail-on }}")
+        IFS=',' read -ra SQLS <<< "${{ inputs.sql }}"
+        for s in "${SQLS[@]}"; do
+          s=$(echo "$s" | xargs)
+          [ -z "$s" ] && continue
+          if [ -e "$s" ]; then ARGS+=(--sql "$s"); fi
+        done
+        if [ -n "${{ inputs.frontend }}" ]; then
+          IFS=',' read -ra FES <<< "${{ inputs.frontend }}"
+          for f in "${FES[@]}"; do
+            f=$(echo "$f" | xargs)
+            [ -z "$f" ] && continue
+            if [ -e "$f" ]; then ARGS+=(--frontend "$f"); fi
+          done
+        fi
+        npx --yes github:blitzhash360-web/supabase-rls-check "${ARGS[@]}"
