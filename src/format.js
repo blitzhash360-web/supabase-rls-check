@@ -12,6 +12,7 @@ const MAGENTA = "\x1b[35m";
 function colorEnabled(opts) {
   if (opts.json) return false;
   if (opts.noColor || process.env.NO_COLOR) return false;
+  if (process.env.FORCE_COLOR && process.env.FORCE_COLOR !== "0") return true;
   return process.stdout.isTTY === true;
 }
 

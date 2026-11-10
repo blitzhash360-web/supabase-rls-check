@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["18", "20", "22", "24"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm test
+      - name: Demo finds the known problems
+        run: |
+          set +e
+          node bin/supabase-rls-check.js --demo --no-color | tee demo.txt
+          code=${PIPESTATUS[0]}
+          test "$code" = "1"
+          grep -q "using_true" demo.txt
+          grep -q "rls_disabled" demo.txt
+          grep -q "public_storage_bucket" demo.txt
+      - name: Good schema passes
+        run: node bin/supabase-rls-check.js --sql fixtures/good --frontend fixtures/frontend-clean --no-color

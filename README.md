@@ -1,64 +1,32 @@
 # supabase-rls-check
 
-**Catch open Supabase tables and `USING (true)` policies before strangers do — in under 10 seconds.**
+**Find open Supabase tables, `USING (true)` policies and leaked service-role keys in your migrations before strangers do. Offline, no account, one command.**
 
+[![CI](https://github.com/blitzhash360-web/supabase-rls-check/actions/workflows/ci.yml/badge.svg)](https://github.com/blitzhash360-web/supabase-rls-check/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](LICENSE)
 [![Node >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
-[![CI](https://img.shields.io/badge/GitHub%20Action-included-blue)](#github-action)
-[![BlitzHash](https://img.shields.io/badge/Built%20by-BlitzHash-0a1628)](https://blitzhash.com)
+[![GitHub Action](https://img.shields.io/badge/GitHub%20Action-included-blue)](#github-action)
+[![Built by BlitzHash](https://img.shields.io/badge/Built%20by-BlitzHash-0a1628)](https://blitzhash.com)
+
+![supabase-rls-check demo output](docs/screenshot.png)
+<sub>Real output of `npx github:blitzhash360-web/supabase-rls-check --demo`, which scans the example schema in [fixtures/](fixtures).</sub>
 
 ## Quick start (3 steps)
 
+You need [Node.js 18 or newer](https://nodejs.org). Nothing else.
+
 ```bash
-# 1. Point it at your migrations (or a SQL dump)
-npx github:blitzhash360-web/supabase-rls-check --sql ./supabase/migrations
+# 1. See it work on the bundled example schema (nothing of yours is read)
+npx -y github:blitzhash360-web/supabase-rls-check --demo
 
-# 2. Optionally scan the frontend for service-role leaks
-npx github:blitzhash360-web/supabase-rls-check \
-  --sql ./supabase/migrations \
-  --frontend ./src
+# 2. Run it on your own migrations (or a SQL dump)
+npx -y github:blitzhash360-web/supabase-rls-check --sql ./supabase/migrations
 
-# 3. Fix anything marked CRITICAL / HIGH, then re-run
+# 3. Optional: also scan your frontend for service-role leaks, then fix CRITICAL / HIGH and re-run
+npx -y github:blitzhash360-web/supabase-rls-check --sql ./supabase/migrations --frontend ./src
 ```
 
-No account. No network call to your project. Never paste a **service-role** key into this tool or a public issue — it only needs your SQL files and (optionally) your frontend source.
-
-## Example output
-
-```text
-supabase-rls-check · offline Supabase RLS audit
-SQL files: 2 · frontend files: 0
-
-CRITICAL [using_true] Policy "public messages are viewable by everyone" on "public.messages" uses USING (true) — anyone who can hit the API can read/write matching rows
-       source: fixtures/bad/002_messages.sql
-       fix: Rewrite the policy to compare a column to auth.uid() (or your tenant id). Deny by default.
-
-CRITICAL [using_true] Policy "anyone can update messages" on "public.messages" uses USING (true) and WITH CHECK (true) — anyone who can hit the API can read/write matching rows
-       source: fixtures/bad/002_messages.sql
-       fix: Rewrite the policy to compare a column to auth.uid() (or your tenant id). Deny by default.
-
-CRITICAL [using_true] Policy "enable read access for all users" on "public.orders" uses USING (true) — anyone who can hit the API can read/write matching rows
-       source: fixtures/bad/001_init.sql
-       fix: Rewrite the policy to compare a column to auth.uid() (or your tenant id). Deny by default.
-
-CRITICAL [using_true] Policy "enable insert for all users" on "public.orders" uses WITH CHECK (true) — anyone who can hit the API can read/write matching rows
-       source: fixtures/bad/001_init.sql
-       fix: Rewrite the policy to compare a column to auth.uid() (or your tenant id). Deny by default.
-
-CRITICAL [rls_disabled] Table "public.profiles" is created but RLS is never enabled
-       source: fixtures/bad/001_init.sql
-       fix: Run: alter table public.profiles enable row level security; then add policies that check auth.uid().
-
-HIGH [public_storage_bucket] Public storage bucket detected (insert)
-       source: fixtures/bad/001_init.sql
-       fix: Keep buckets private and serve files through signed URLs, or restrict with storage RLS policies.
-
-Summary: 5 critical, 1 high (6 total)
-
-Built by BlitzHash · https://blitzhash.com · never paste a service-role key into a public issue
-```
-
-Exit code `1` when findings meet `--fail-on` (default: `high`) — ready for CI.
+No account. No network call to your project. Never paste a **service-role** key into this tool or a public issue: it only needs your SQL files and (optionally) your frontend source. It exits with code `1` when it finds something at `--fail-on` severity (default `high`), so it drops straight into CI.
 
 ## What it checks
 
@@ -94,6 +62,7 @@ Copy the workflow from [`.github/workflows/rls-check.yml`](.github/workflows/rls
 --frontend, -f <path>  Frontend / env tree to scan (repeatable)
 --json                 JSON report
 --fail-on <level>      critical|high|medium|low (default: high)
+--demo                 Scan the bundled example schema
 --no-color             Disable ANSI colors
 ```
 
@@ -103,7 +72,7 @@ Copy the workflow from [`.github/workflows/rls-check.yml`](.github/workflows/rls
 git clone https://github.com/blitzhash360-web/supabase-rls-check
 cd supabase-rls-check
 npm test
-node bin/supabase-rls-check.js --sql fixtures/bad --frontend fixtures/frontend
+node bin/supabase-rls-check.js --demo
 ```
 
 Fixtures under `fixtures/bad` and `fixtures/good` are intentional demo schemas — not real client data.

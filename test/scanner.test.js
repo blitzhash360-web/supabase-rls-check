@@ -71,3 +71,21 @@ describe("full bad tree", () => {
     assert.ok(report.meta.sqlFiles.length >= 2);
   });
 });
+
+describe("cli --demo", () => {
+  it("scans the bundled fixtures and exits 1", async () => {
+    const { runCli } = require("../src/cli");
+    const logs = [];
+    const orig = console.log;
+    console.log = (m) => logs.push(String(m));
+    let code;
+    try {
+      code = await runCli(["--demo", "--no-color"]);
+    } finally {
+      console.log = orig;
+    }
+    assert.strictEqual(code, 1);
+    assert.match(logs.join("\n"), /using_true/);
+    assert.match(logs.join("\n"), /rls_disabled/);
+  });
+});

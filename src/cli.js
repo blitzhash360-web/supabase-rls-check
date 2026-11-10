@@ -18,6 +18,7 @@ OPTIONS
   --json                   Machine-readable JSON output
   --fail-on <level>        Exit 1 when findings at this severity or worse
                            (critical|high|medium|low). Default: high
+  --demo                   Scan the bundled example schema (shows every check firing)
   --no-color               Disable ANSI colors
   -h, --help               Show help
   -v, --version            Show version
@@ -41,6 +42,7 @@ function parseArgs(argv) {
     json: false,
     failOn: "high",
     noColor: false,
+    demo: false,
     help: false,
     version: false,
   };
@@ -62,6 +64,9 @@ function parseArgs(argv) {
         break;
       case "--json":
         opts.json = true;
+        break;
+      case "--demo":
+        opts.demo = true;
         break;
       case "--no-color":
         opts.noColor = true;
@@ -115,6 +120,12 @@ async function runCli(argv) {
     const pkg = require("../package.json");
     console.log(pkg.version);
     return 0;
+  }
+
+  if (opts.demo) {
+    const demoDir = path.join(__dirname, "..", "fixtures");
+    opts.sql.push(path.relative(process.cwd(), path.join(demoDir, "bad")) || ".");
+    opts.frontend.push(path.relative(process.cwd(), path.join(demoDir, "frontend")) || ".");
   }
 
   if (opts.sql.length === 0 && opts.frontend.length === 0) {
