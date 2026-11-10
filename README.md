@@ -45,7 +45,7 @@ This checker reads your SQL migrations (or a dump) offline and lists the exact p
 
 ## GitHub Action
 
-Copy the workflow from [`.github/workflows/rls-check.yml`](.github/workflows/rls-check.yml), or use the composite action:
+Copy the workflow from [`examples/rls-check.yml`](examples/rls-check.yml) into `.github/workflows/`, or use the composite action:
 
 ```yaml
 - uses: blitzhash360-web/supabase-rls-check@main
